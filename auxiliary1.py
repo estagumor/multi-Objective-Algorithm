@@ -4,36 +4,32 @@ from classes import Individual
 
 def weightVectors(N): #Obtains the weight vector's
     #First, we are gonna do the weights. We need N vectors of two elements 
-    vectors = [] #The final return
-    poblation = []
+    poblation = [] #Return a array of individuals with their weights 
     equidistance = 1/N #The distance between the first element of the vectors
     j = 0 #Loop's initialization
 
     while j < N: #A loop for the vectors
 
-        if(len(vectors) < 1): #First iteration
+        if(len(poblation) < 1): #First iteration
             weights = [equidistance]
         else:
-            weights = [(len(vectors)+1)*equidistance] 
+            weights = [(len(poblation)+1)*equidistance] 
 
         weights.append(1 - weights[0]) #The y element of the weigths vector 
         ind = Individual(weights)
-        vectors.append(weights)
         poblation.append(ind)
         j = j + 1
 
     return poblation
 
-def neighbors(vectors, T): #Weight vector's, Number of neighbors 
-    neighbors = [] #Array of neighbors for every vector. Return of the function
-    ind = [] #index of the neighbors for every vector.
+def neighbors(vectors, T): #Indivual vector's with their weights, Number of neighbors
     i = 0 #Iterator
     while i < len(vectors): #Going through all the vectors
         cVector = vectors[i] #Current vector
         distance = {} #Distance's dictionary for the current vector
         for vector in vectors: 
             if vector.id == cVector.id: 
-                distance[vector.id] = 0.0
+                distance[vector] = 0.0
             else:
                 sum = 0 
                 j = 0 #Iterator
@@ -41,21 +37,19 @@ def neighbors(vectors, T): #Weight vector's, Number of neighbors
                     sum = sum + abs(cVector.weights[j] - vector.weights[j])**2
                     j = j + 1
                 squareRoot = sqrt(sum)
-                distance[vector.id] = squareRoot
+                distance[vector] = squareRoot
         
         keys = sorted(distance, key=distance.__getitem__) #Returns the keys ordered by the values
-        ind.append(keys)
         l = 0 #Loop's iterator
-        n = []
-        while l < T: #We only choose the T better vectors of the array 
-            for k in keys:
-                #TE HAS QUEDADO POR AQUI
-                n.append()
-                l = l + 1
-        neighbors.append(n)
+        for k in keys:
+            if(l >= T):
+                break
+            else:
+                vector.add_neighbor(k)
+            l = l + 1
         i = i + 1 #Next iteration
 
-    return [ind,neighbors]
+    return vectors #With the neighbors inside
 
 w = weightVectors(5)
 neighbors(w,2)

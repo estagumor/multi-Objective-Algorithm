@@ -230,6 +230,7 @@ def differentialEvolution(pneighbors,neighbors,functions,F,GR):
     
 w = weightVectors(3)
 n = neighbors(w,2)
+print(n)
 p = poblation(3,3)
 pn = obtainPoblationNeighbors(n,p)
 f = functionZDT3(pn)
