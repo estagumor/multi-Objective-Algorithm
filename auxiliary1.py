@@ -1,52 +1,11 @@
 import random
 from math import sqrt,sin,pi
-
-def oldWeightVectors(N): #Obtains the weight vector's
-    #First, we are gonna do the weights. We need N vectors of N elements 
-    vectors = [] #The final return
-    equidistance = 0.2 #CHANGE. The distance between the first element of the vectors
-    j = 0 #Loop's initialization
-    i = 0 #Loop's initialization
-
-    while j < N: #A loop for the vectors
-        try:
-            lastVector = vectors[-1] #We take the last vector
-            firstElement = lastVector[0] #We take the first element of the last vector
-            pick = [firstElement + equidistance, firstElement - equidistance]
-            if pick[0] > 1: #It can't be greater than one
-                weights = [pick[1]]
-            elif pick[1] < 0: #It can't be negative
-                weights = [pick[0]]
-            else: #We choose randomly
-                weights = [random.choice(pick)]
-
-        except IndexError as identifier: #We are at the first iteration
-            weights = [random.uniform(0,0.5)] #CHANGE. First element of the first vector. To 0.5 to make it more easy 
-
-        sum = 0 #When sum = 1, leftover elements of the vector = 0
-        while i < N - 1: #A loop for the elements of the vector
-            sum = sum + weights[i]
-            if sum == 1: #We need 0s now
-                weights.append(0)
-            else: #Random pick 
-                rand = random.uniform(0,(1-sum))
-                weights.append(rand)
-
-            if (i+2) == N and sum != 1: #To make sure that the add is one at the end of the loop
-                remainder = 1 - (sum - weights[-1]) 
-                weights[-1] = remainder
-
-            i = i + 1
-
-        vectors.append(weights)
-        j = j + 1
-        i = 0
-
-    return vectors
+from classes import Individual
 
 def weightVectors(N): #Obtains the weight vector's
     #First, we are gonna do the weights. We need N vectors of two elements 
     vectors = [] #The final return
+    poblation = []
     equidistance = 1/N #The distance between the first element of the vectors
     j = 0 #Loop's initialization
 
@@ -58,10 +17,12 @@ def weightVectors(N): #Obtains the weight vector's
             weights = [(len(vectors)+1)*equidistance] 
 
         weights.append(1 - weights[0]) #The y element of the weigths vector 
+        ind = Individual(weights)
         vectors.append(weights)
+        poblation.append(ind)
         j = j + 1
 
-    return vectors
+    return poblation
 
 def neighbors(vectors, T): #Weight vector's, Number of neighbors 
     neighbors = [] #Array of neighbors for every vector. Return of the function
@@ -70,19 +31,17 @@ def neighbors(vectors, T): #Weight vector's, Number of neighbors
     while i < len(vectors): #Going through all the vectors
         cVector = vectors[i] #Current vector
         distance = {} #Distance's dictionary for the current vector
-        k = 0 #That will help us to find the vectors in the future
         for vector in vectors: 
-            if vector == cVector: 
-                distance[k] = 0.0
+            if vector.id == cVector.id: 
+                distance[vector.id] = 0.0
             else:
                 sum = 0 
                 j = 0 #Iterator
-                while j < len(vector): #That's the inside of the sqrt
-                    sum = sum + abs(cVector[j] - vector[j])**2
+                while j < len(vector.weights): #That's the inside of the sqrt
+                    sum = sum + abs(cVector.weights[j] - vector.weights[j])**2
                     j = j + 1
                 squareRoot = sqrt(sum)
-                distance[k] = squareRoot
-            k = k + 1
+                distance[vector.id] = squareRoot
         
         keys = sorted(distance, key=distance.__getitem__) #Returns the keys ordered by the values
         ind.append(keys)
@@ -90,14 +49,18 @@ def neighbors(vectors, T): #Weight vector's, Number of neighbors
         n = []
         while l < T: #We only choose the T better vectors of the array 
             for k in keys:
-                n.append(vectors[k])
+                #TE HAS QUEDADO POR AQUI
+                n.append()
                 l = l + 1
         neighbors.append(n)
         i = i + 1 #Next iteration
 
     return [ind,neighbors]
 
-def poblation(el,N): #Obtains a random poblation of N size with el elements
+w = weightVectors(5)
+neighbors(w,2)
+
+def poblation(el,N,weights,neighbors): #Obtains a random poblation of N size with el elements
     i = 0 #Loop's initialization
     poblationVector = []
     while i < N: #It generates a element between the range and adds it to the return vector
@@ -106,7 +69,9 @@ def poblation(el,N): #Obtains a random poblation of N size with el elements
         while j < el:
             ind.append(random.uniform(0,1)) 
             j = j + 1
-        poblationVector.append(ind)
+        individual = Individual(ind)
+
+        poblationVector.append(individual)
         i = i + 1 #Next iteration
 
     return poblationVector
@@ -227,7 +192,7 @@ def differentialEvolution(pneighbors,neighbors,functions,F,GR):
         l = l + 1
 
     return [selectionVectors,f] #The new poblation and their fitness 
-    
+
 w = weightVectors(3)
 n = neighbors(w,2)
 p = poblation(3,3)
