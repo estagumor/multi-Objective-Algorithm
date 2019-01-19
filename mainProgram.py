@@ -1,4 +1,4 @@
-from auxiliaryMethods import weightVectors,neighbors,poblation,functionZDT3,zDT3
+from auxiliaryMethods import weightVectors,neighbors,poblation,functionZDT3,zDT3,differentialEvolution
 #First we define the parametrers that we can change:
 ##GENERAL PARAMETERS
 N = 10 #Number of subproblems
@@ -24,4 +24,6 @@ z = zDT3([],array)
 
 IT = 0 #Loop's iterator
 while IT < G: #when IT is equal to G, the algorithm will stop
+    for individual in array:
+        differentialEvolution
 
