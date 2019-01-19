@@ -9,7 +9,7 @@ class Individual:
         self.f2 = 0.0
         self.id = Individual.next_id #We'll need it in the future 
         Individual.next_id += 1
-        print('Individual: ' + str(self.id) + '. Weights: ' + str(weights))
+        #print('Individual: ' + str(self.id) + '. Weights: ' + str(weights))
 
     def edit_weights(self, w):
         self.weights = w

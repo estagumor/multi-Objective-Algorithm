@@ -1,14 +1,15 @@
 from auxiliaryMethods import weightVectors,neighbors,poblation,functionZDT3,zDT3,differentialEvolution
+import matplotlib.pyplot as plt
 #First we define the parametrers that we can change:
 ##GENERAL PARAMETERS
-N = 10 #Number of subproblems
-G = 0 #Number of generations
+N = 20 #Number of subproblems
+G = 200 #Number of generations
 
 ##EVOLUTION OPERATORS
 F = 0.5 #Should be between [0,2]
-GR = 0.5 #Should be between (0,1)
+GR = 0.65 #Should be between (0,1)
 ##OTHERS
-T = 5 #Number of neighbors. Should be between the 10%/30% of the N size
+T = 3 #Number of neighbors. Should be between the 10%/30% of the N size
 SearchSpace = [0.0,1.0]
 
 ##MAIN
@@ -23,8 +24,32 @@ array = functionZDT3(array)
 z = zDT3([],array)
 
 IT = 0 #Loop's iterator
+f1Vector = []
+f2Vector = []
 while IT < G: #when IT is equal to G, the algorithm will stop
-    for individual in array:
+    i = 0 #Loop's iterator
+    while i < len(array):
         #ind, F, GR, z
-        differentialEvolution(individual, F, GR, z)
+        ret = differentialEvolution(array[i], F, GR, z, array)
+        array = ret[0]
+        z = ret[1]
+        i = i + 1
+        for r in ret[0]:
+            f1Vector.append(r.f1)
+            f2Vector.append(r.f2)
+            #print("ID : " + str(r.id) + ". F1: " + str(r.f1) + ". F2: " + str(r.f2))
+    IT = IT + 1
 
+print("Iteration: " + str(IT) + ". Actual z: " + str(ret[1]))
+
+f1Ideal= []
+f2Ideal= []
+f = open("outFilesZDT3/20x200.txt", "r", -1, "UTF-8")
+for line in f.readlines():
+    split = line.split("\t")
+    f1Ideal.append(float(split[0]))
+    split1 = split[1].split("\n")
+    f2Ideal.append(float(split1[0]))
+plt.plot(f1Vector, f2Vector, 'ro', f1Ideal, f2Ideal, 'bs')
+plt.ylabel('f1-f2')
+plt.show()
