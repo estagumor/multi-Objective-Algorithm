@@ -4,12 +4,11 @@ from classes import Individual
 
 def weightVectors(N): #Obtains the weight vector's
     #First, we are gonna do the weights. We need N vectors of two elements 
-    poblation = [] #Return a array of individuals with their weights 
+    poblation = [] #Return an array of individuals with their weights 
     equidistance = 1/N #The distance between the first element of the vectors
     j = 0 #Loop's initialization
 
     while j < N: #A loop for the vectors
-
         if(len(poblation) < 1): #First iteration
             weights = [equidistance]
         else:
@@ -22,14 +21,14 @@ def weightVectors(N): #Obtains the weight vector's
 
     return poblation
 
-def neighbors(vectors, T): #Indivual vector's with their weights, Number of neighbors
+def neighbors(individuals, T): #Indivual vector's with their weights, Number of neighbors
     i = 0 #Iterator
-    while i < len(vectors): #Going through all the vectors
-        cVector = vectors[i] #Current vector
+    while i < len(individuals): #Going through all the individuals
+        cVector = individuals[i] #Current vector
         distance = {} #Distance's dictionary for the current vector
-        for vector in vectors: 
+        for vector in individuals: 
             if vector.id == cVector.id: 
-                distance[vector] = 0.0
+                distance[vector.id] = 0.0
             else:
                 sum = 0 
                 j = 0 #Iterator
@@ -37,7 +36,7 @@ def neighbors(vectors, T): #Indivual vector's with their weights, Number of neig
                     sum = sum + abs(cVector.weights[j] - vector.weights[j])**2
                     j = j + 1
                 squareRoot = sqrt(sum)
-                distance[vector] = squareRoot
+                distance[vector.id] = squareRoot
         
         keys = sorted(distance, key=distance.__getitem__) #Returns the keys ordered by the values
         l = 0 #Loop's iterator
@@ -45,82 +44,72 @@ def neighbors(vectors, T): #Indivual vector's with their weights, Number of neig
             if(l >= T):
                 break
             else:
-                vector.add_neighbor(k)
+                cVector.add_neighbor(k) #We add the id instead of the individual cause it could change
             l = l + 1
         i = i + 1 #Next iteration
 
-    return vectors #With the neighbors inside
+    return individuals #With the neighbors inside
 
-w = weightVectors(5)
-neighbors(w,2)
-
-def poblation(el,N,weights,neighbors): #Obtains a random poblation of N size with el elements
+def poblation(individuals, el, N, min, max): #Obtains a random poblation of N size with el elements
     i = 0 #Loop's initialization
-    poblationVector = []
     while i < N: #It generates a element between the range and adds it to the return vector
         j = 0 #Loop's initialization
         ind = []
         while j < el:
-            ind.append(random.uniform(0,1)) 
+            ind.append(random.uniform(min,max)) 
             j = j + 1
-        individual = Individual(ind)
-
-        poblationVector.append(individual)
+        individuals[i].add_chromosome(ind)
         i = i + 1 #Next iteration
 
-    return poblationVector
+    return individuals
 
-def obtainPoblationNeighbors(neighbors,poblation):
-    poblationNeighbors = []
-    ind = neighbors[0]
-    for i in ind:
-        n = []
-        for j in i:
-            n.append(poblation[j])
-        poblationNeighbors.append(n)
-
-    return poblationNeighbors
-
-def functionZDT3(poblation): #Obtains the poblation's fitness and returns it in an array
+def functionZDT3(individuals): #Obtains the poblation's fitness and returns it in an array
     i = 0 #Loop's initialization
-    f1Vector = [] 
-    f2Vector = []
-    while i < len(poblation): 
-        ind = poblation[i] #Current poblation element
-        f1 = ind[0]
+    while i < len(individuals): 
+        ind = individuals[i] #Current poblation element
+        c = ind.chromosome
+        f1 = c[0]
         j = 2 #Loop's initialization
         sum = 0 #Summation
-        while j < len(ind):
-            sum = sum + ind[j]
+        while j < len(c):
+            sum = sum + c[j]
             j = j + 1
-        g = 1 + (9/(len(ind)-1))*sum
+        g = 1 + (9/(len(c)-1))*sum
         h = 1 - sqrt(f1/g) - (f1/g)*sin(10*pi*f1)
         f2 = g*h
-        f1Vector.append(f1)
-        f2Vector.append(f2)
+        ind.f1 = f1
+        ind.f2 = f2
         i = i + 1
 
-    return [f1Vector,f2Vector]
+    return individuals
 
-def zDT3(z,functions):
-    f1Vector = functions[0]
-    f1Vector.sort()
-    f2Vector = functions[1]
-    f2Vector.sort()
-    f1 = f1Vector[0]
-    f2 = f2Vector[0]
-    if(len(z) < 1): #initialization
-        z.append(f1)
-        z.append(f2)
-    else:
-        if(z[0] > f1):
-            z[0] = f1
-        
-        if(z[1] > f2):
-            z[1] = f2
+def zDT3(z,individuals):
+    if(len(z) < 1): #Initialization
+        f1Vector = []
+        f2Vector = []
+        for ind in individuals:
+            f1Vector.append(ind.f1)
+            f2Vector.append(ind.f2)
+        f1Vector.sort() #We make an ascend sorting
+        z.append(f1Vector[0]) #Took the best f1 return 
+        f2Vector.sort()
+        z.append(f2Vector[0])
+    else: #By now, I suppose individuals is only a one individual 
+        if(individuals.f1 < z[0]):
+            z[0] = individuals.f1
+        if(individuals.f2 < z[0]):
+            z[1] = individuals.f2
+
     return z
 
-def differentialEvolution(pneighbors,neighbors,functions,F,GR):
+ind = weightVectors(5)
+ind = neighbors(ind,2)
+ind = poblation(ind,10,5,0.0,1.0)
+ind = functionZDT3(ind)
+z = zDT3([],ind)
+#ALL SEEMS TO WORK 
+
+def differentialEvolution(individuals, ind, F, GR):
     #F -> Mutation rate [0,2]
     #GR -> Recombination rate (0,1)
 
@@ -129,28 +118,35 @@ def differentialEvolution(pneighbors,neighbors,functions,F,GR):
     #NP -> numero de individuos que componen la poblacion
     #p -> iterador de individuos de la poblacion
     #g -> generacion
+
+    ##HAY QUE OBTENER A TODOS LOS VECINOS PARA PODER HACER ESTO. A VER COMO LO PLANTEAMOS
+
     noisyRandomVectors = []
     trialVectors = []
     selectionVectors = []
-    poblation = pneighbors
-    NP = len(poblation)
+    poblationIndex = ind.neighbors
+    NP = len(poblationIndex)
     
     #Mutation
     i = 0 #Loop's iterator
     while i < NP:
         #Target vectors
-        xa = random.choice(poblation)
-        xb = random.choice(poblation)
-        while xb == xa: 
-            xb = random.choice(poblation)
-        xc = random.choice(poblation)
-        while xc == xb or xc == xa:
-            xc = random.choice(poblation)
+        xaI = random.choice(poblationIndex)
+        xbI = random.choice(poblationIndex)
+        while xbI == xaI: 
+            xbI = random.choice(poblationIndex)
+        xcI = random.choice(poblationIndex)
+        while xcI == xbI or xcI == xaI:
+            xcI = random.choice(poblationIndex)
         
+        xa = filter(lambda x: (x.id == xaI), individuals)
+        xb = filter(lambda y: (y.id == xbI), individuals)
+        xc = filter(lambda z: (z.id == xcI), individuals)
+
         j = 0 #Loop's iterator
         ngp = []
-        while j < len(xa):
-            op = xc[j] + F*(xa[j]- xb[j])
+        while j < len(xa.chromosome):
+            op = xc.chromosome[j] + F*(xa.chromosome[j]- xb.chromosome[j])
             ngp.append(op)
             j = j + 1
         noisyRandomVectors.append(ngp)
@@ -161,7 +157,7 @@ def differentialEvolution(pneighbors,neighbors,functions,F,GR):
     while k < NP:
         j = 0 #Loop's iterator
         tgp = []
-        while j < len(xa):
+        while j < len(xa.chromosome):
             rand = random.uniform(0.01, 1)
             if(rand > GR):
                 xgp = poblation[k]
