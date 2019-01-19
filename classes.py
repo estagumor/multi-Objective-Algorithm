@@ -11,6 +11,9 @@ class Individual:
         Individual.next_id += 1
         print('Individual: ' + str(self.id) + '. Weights: ' + str(weights))
 
+    def edit_weights(self, w):
+        self.weights = w
+    
     def add_neighbor(self, n): #An array with the index of the neighbors 
         self.neighbors.append(n)
     

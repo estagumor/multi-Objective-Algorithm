@@ -25,5 +25,6 @@ z = zDT3([],array)
 IT = 0 #Loop's iterator
 while IT < G: #when IT is equal to G, the algorithm will stop
     for individual in array:
-        differentialEvolution
+        #ind, F, GR, z
+        differentialEvolution(individual, F, GR, z)
 

@@ -65,8 +65,24 @@ def poblation(individuals, el, N, min, max): #Obtains a random poblation of N si
 
 def functionZDT3(individuals): #Obtains the poblation's fitness and returns it in an array
     i = 0 #Loop's initialization
-    while i < len(individuals): 
-        ind = individuals[i] #Current poblation element
+    try:
+        while i < len(individuals): #We have an array
+            ind = individuals[i] #Current poblation element
+            c = ind.chromosome
+            f1 = c[0]
+            j = 2 #Loop's initialization
+            sum = 0 #Summation
+            while j < len(c):
+                sum = sum + c[j]
+                j = j + 1
+            g = 1 + (9/(len(c)-1))*sum
+            h = 1 - sqrt(f1/g) - (f1/g)*sin(10*pi*f1)
+            f2 = g*h
+            ind.add_f1(f1)
+            ind.add_f2(f2)
+            i = i + 1
+    except TypeError as identifier: #We have an individual
+        ind = individuals
         c = ind.chromosome
         f1 = c[0]
         j = 2 #Loop's initialization
@@ -79,7 +95,6 @@ def functionZDT3(individuals): #Obtains the poblation's fitness and returns it i
         f2 = g*h
         ind.add_f1(f1)
         ind.add_f2(f2)
-        i = i + 1
 
     return individuals
 
@@ -102,7 +117,7 @@ def zDT3(z,individuals):
 
     return z
 
-def differentialEvolution(ind, F, GR):
+def differentialEvolution(ind, F, GR, z):
     #F -> Mutation rate [0,2]
     #GR -> Recombination rate (0,1)
 
@@ -112,80 +127,67 @@ def differentialEvolution(ind, F, GR):
     #p -> iterador de individuos de la poblacion
     #g -> generacion
 
-    noisyRandomVectors = []
-    trialVectors = []
-    selectionVectors = []
     poblation = ind.neighbors
     NP = len(poblation)
-
-    #for e in individuals:
-    #    if(lambda x: e.id == poblationIndex[x]):
-    #        neihbors.append(e)
-    
-    #[neighbors.append(e) for e in individuals if (lambda x: e.id == poblationIndex[x])]
-    
-    #list(filter(lambda x, y: poblationIndex[x] == individuals[y].id, individuals))
 
     #COMPROBAR QUE LOS VECINOS SEAN TRES Y EN ESE CASO COGERLOS DIRECTAMENTE. 
     #SI SON MENORES A TRES LANZAR UN ERROR
 
     #Mutation
-    i = 0 #Loop's iterator
-    while i < NP:
-        #Target vectors
-        xa = random.choice(poblation)
+    #Target vectors
+    xa = random.choice(poblation)
+    xb = random.choice(poblation)
+    while xb == xa: 
         xb = random.choice(poblation)
-        while xb == xa: 
-            xb = random.choice(poblation)
+    xc = random.choice(poblation)
+    while xc == xb or xc == xa:
         xc = random.choice(poblation)
-        while xc == xb or xc == xa:
-            xc = random.choice(poblation)
-        
-        #xa = filter(lambda x: (x.id == xaI), individuals)
-        #xb = filter(lambda y: (y.id == xbI), individuals)
-        #xc = filter(lambda z: (z.id == xcI), individuals)
 
-        j = 0 #Loop's iterator
-        ngp = []
-        while j < len(xa.chromosome):
-            op = xc.chromosome[j] + F*(xa.chromosome[j]- xb.chromosome[j])
-            ngp.append(op)
-            j = j + 1
-        noisyRandomVectors.append(ngp)
+    i = 0 #Loop's iterator
+    ngp = []
+    while i < len(xa.chromosome):
+        op = xc.chromosome[i] + F*(xa.chromosome[i]- xb.chromosome[i])
+        ngp.append(op)
         i = i + 1
 
     #Recombination
-    k = 0 #Loop's iterator
-    while k < NP:
-        j = 0 #Loop's iterator
-        tgp = []
-        xgp = poblation[k]
-        ngp = noisyRandomVectors[k]
-        while j < len(xa.chromosome):
-            rand = random.uniform(0.01, 1)
-            if(rand > GR):
-                tgp.append(xgp.chromosome[j])
-            else:
-                tgp.append(ngp[j])
-            j = j + 1
-        ind = Individual([]) #DESPUES SI USAMOS ESTE INDIVIDUO EN VEZ DEL OTRO LE PONEMOS SUS PESOS
-        ind.add_chromosome(tgp)
-        trialVectors.append(ind)
-        k = k + 1
-    
-    #Selection
-    trialVectors = functionZDT3(trialVectors) #Calculamos el fitness de los nuevos elementos
-    l = 0 #Loop's iterator
-    while l < len(trialVectors):
-        tind = trialVectors[l]
-        xind = poblation[l]
-        if(zt[0] < zx[0] or [1] < xfit[1]):
-            selectionVectors.append(trialVectors[l])
+    j = 0 #Loop's iterator
+    tgp = []
+    k = random.randint(0,len(poblation)-1) #We choose a neighbor randomly
+    xgp = poblation[k]
+    while j < len(xa.chromosome):
+        rand = random.uniform(0.01, 1)
+        if(rand > GR):
+            tgp.append(xgp.chromosome[j])
         else:
-            selectionVectors.append(poblation[l])
+            tgp.append(ngp[j])
+        j = j + 1
+    
+    #Selection  
+    l = 0 #Loop's iterator
+    while l < len(poblation): #It is the moment to update the neighbors
+        #We have tgp (the chromosome)
+        cNeighbor = poblation[l]
+        cWeights = cNeighbor.weights
+        newInd = Individual(cWeights)
+        newInd.add_chromosome(tgp)
+        newInd.neighbors = cNeighbor.neighbors
+        newInd = functionZDT3(newInd) #Obtains the fitness of the new element
+        z = zDT3(z, newInd) #Update the z vector
+
+        xg1 = cWeights[0]*abs(cNeighbor.f1 - z[0])
+        xg2 = cWeights[1]*abs(cNeighbor.f2 - z[1])
+        gtex = max(xg1, xg2)
+
+        yg1 = cWeights[0]*abs(newInd.f1 - z[0])
+        yg2 = cWeights[1]*abs(newInd.f2 - z[1])
+        gtey = max(yg1, yg2)
+
+        if(gtey <= gtex):
+            ind.neighbors[l] = newInd
         l = l + 1
 
-    return [selectionVectors,f] #The new poblation and their fitness 
+    return newInd #We can use it in the future 
 
 ind = weightVectors(5)
 ind = neighbors(ind,3)
@@ -195,4 +197,4 @@ z = zDT3([],ind)
 #ALL SEEMS TO WORK 
 
 #individuals, ind, F, GR
-differentialEvolution(ind[0], 0.3, 0.3)
+differentialEvolution(ind[0], 0.3, 0.3, z)
