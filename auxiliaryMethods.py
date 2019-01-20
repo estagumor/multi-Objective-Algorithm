@@ -15,7 +15,6 @@ def weightVectors(N): #Obtains the weight vector's
             weights = [(len(poblation))*equidistance] 
 
         weights.append(1 - weights[0]) #The y element of the weigths vector 
-        #print(weights)
         ind = Individual(weights)
         poblation.append(ind)
         j = j + 1
@@ -78,7 +77,8 @@ def functionZDT3(individuals): #Obtains the poblation's fitness and returns it i
             while j < len(c):
                 sum = sum + c[j]
                 j = j + 1
-            g = 1 + (9/(len(c)-1))*sum
+
+            g = 1 + ((9*sum)/(len(c)-1))
             h = 1 - sqrt(f1/g) - (f1/g)*sin(10*pi*f1)
             f2 = g*h
             ind.add_f1(f1)
@@ -93,7 +93,7 @@ def functionZDT3(individuals): #Obtains the poblation's fitness and returns it i
         while j < len(c):
             sum = sum + c[j]
             j = j + 1
-        g = 1 + (9/(len(c)-1))*sum
+        g = 1 + ((9*sum)/(len(c)-1))
         h = 1 - sqrt(f1/g) - (f1/g)*sin(10*pi*f1)
         f2 = g*h
         ind.add_f1(f1)
@@ -112,7 +112,7 @@ def updateZ(z,individuals):
         z.append(f1Vector[0]) #Took the best f1 return 
         f2Vector.sort()
         z.append(f2Vector[0])
-    else: #By now, I suppose individuals is only a one individual 
+    else: #Evaluating f1 and f2 of the new Individual
         if(individuals.f1 < z[0]):
             z[0] = individuals.f1
         if(individuals.f2 < z[1]):
@@ -128,7 +128,6 @@ def differentialEvolution(ind, F, GR, z, individuals, minValue, maxValue):
     poblation = []
     for p in poblationIndex:
         poblation.append(individuals[p])
-    #print(poblation)
     NP = len(poblation)
 
     #Mutation
@@ -149,7 +148,7 @@ def differentialEvolution(ind, F, GR, z, individuals, minValue, maxValue):
             op = random.uniform(minValue, maxValue)
         ngp.append(op) 
         i = i + 1
-    #print("npg: " + str(ngp))
+
     #Recombination
     j = 0 #Loop's iterator
     tgp = []
@@ -162,7 +161,7 @@ def differentialEvolution(ind, F, GR, z, individuals, minValue, maxValue):
         else:
             tgp.append(ngp[j])
         j = j + 1
-    #print("tgp: " + str(tgp))
+
     #Selection  
     l = 0 #Loop's iterator
     while l < len(poblation): #It is the moment to update the neighbors
@@ -179,33 +178,17 @@ def differentialEvolution(ind, F, GR, z, individuals, minValue, maxValue):
         xg1 = cWeights[0]*abs(absxf1)
         absxf2 = cNeighbor.f2 - z[1]
         xg2 = cWeights[1]*abs(absxf2)
-        gtex = max(xg1, xg2)
+        gtex = max(xg1, xg2) #Getting the Tchebychef function of the neighbor
 
         absyf1 = newInd.f1 - z[0] 
         yg1 = cWeights[0]*abs(absyf1)
         absyf2 = newInd.f2 - z[1]
         yg2 = cWeights[1]*abs(absyf2)
-        gtey = max(yg1, yg2)
+        gtey = max(yg1, yg2) #Getting the Tchebychef function of the newInd
 
-        if(gtey <= gtex): #Sustituimos el antiguo por este
+        if(gtey <= gtex): 
             index = poblationIndex[l]
-            #individualsList = list(individuals)
-            #index = individualsList.index(ind.neighbors[l])
-            #individuals[index].chromosome = newInd.chromosome
-            #individuals[index].f1 = newInd.f1
-            #individuals[index].f2 = newInd.f2
-            #individuals[index].id = newInd.id
             individuals[index] = newInd
         l = l + 1
 
     return [individuals, z] #We can use it in the future 
-
-#ind = weightVectors(5)
-#ind = neighbors(ind,3)
-#ind = poblation(ind,10,5,0.0,1.0)
-#ind = functionZDT3(ind)
-#z = zDT3([],ind)
-#ALL SEEMS TO WORK 
-
-#individuals, ind, F, GR
-#differentialEvolution(ind[0], 0.3, 0.3, z)
