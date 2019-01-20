@@ -10,11 +10,12 @@ def weightVectors(N): #Obtains the weight vector's
 
     while j < N: #A loop for the vectors
         if(len(poblation) < 1): #First iteration
-            weights = [equidistance]
+            weights = [0.0]
         else:
-            weights = [(len(poblation)+1)*equidistance] 
+            weights = [(len(poblation))*equidistance] 
 
         weights.append(1 - weights[0]) #The y element of the weigths vector 
+        #print(weights)
         ind = Individual(weights)
         poblation.append(ind)
         j = j + 1
@@ -52,9 +53,9 @@ def neighbors(individuals, T): #Individual vector's with their weights, Number o
 
     return individuals #With the neighbors inside
 
-def poblation(individuals, el, N, min, max): #Obtains a random poblation of N size with el elements
+def poblation(individuals, el, min, max): #Obtains a random poblation of N size with el elements
     i = 0 #Loop's initialization
-    while i < N: #It generates a element between the range and adds it to the return vector
+    while i < len(individuals): #It generates a element between the range and adds it to the return vector
         j = 0 #Loop's initialization
         ind = []
         while j < el:
@@ -100,7 +101,7 @@ def functionZDT3(individuals): #Obtains the poblation's fitness and returns it i
 
     return individuals
 
-def zDT3(z,individuals):
+def updateZ(z,individuals):
     if(len(z) < 1): #Initialization
         f1Vector = []
         f2Vector = []
@@ -119,7 +120,7 @@ def zDT3(z,individuals):
 
     return z
 
-def differentialEvolution(ind, F, GR, z, individuals):
+def differentialEvolution(ind, F, GR, z, individuals, minValue, maxValue):
     #F -> Mutation rate [0,2]
     #GR -> Recombination rate (0,1)
 
@@ -129,9 +130,6 @@ def differentialEvolution(ind, F, GR, z, individuals):
         poblation.append(individuals[p])
     #print(poblation)
     NP = len(poblation)
-
-    #COMPROBAR QUE LOS VECINOS SEAN TRES Y EN ESE CASO COGERLOS DIRECTAMENTE. 
-    #SI SON MENORES A TRES LANZAR UN ERROR
 
     #Mutation
     #Target vectors
@@ -147,7 +145,9 @@ def differentialEvolution(ind, F, GR, z, individuals):
     ngp = []
     while i < len(xa.chromosome):
         op = xc.chromosome[i] + F*(xa.chromosome[i]- xb.chromosome[i])
-        ngp.append(abs(op))
+        if(op < minValue or op > maxValue): #We don't want negative values 
+            op = random.uniform(minValue, maxValue)
+        ngp.append(op) 
         i = i + 1
     #print("npg: " + str(ngp))
     #Recombination
@@ -173,7 +173,7 @@ def differentialEvolution(ind, F, GR, z, individuals):
         newInd.add_chromosome(tgp)
         newInd.neighbors = cNeighbor.neighbors
         newInd = functionZDT3(newInd) #Obtains the fitness of the new element
-        z = zDT3(z, newInd) #Update the z vector
+        z = updateZ(z, newInd) #Update the z vector
 
         absxf1 = cNeighbor.f1 - z[0]
         xg1 = cWeights[0]*abs(absxf1)
